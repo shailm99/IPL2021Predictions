@@ -11,9 +11,7 @@ teams
 model1 <- as.data.frame(t(read.csv('model1_FIX.csv', row.names = 'X')))
 model2 <- read.csv('model2_FIX.csv',row.names = 'X')
 model3 <- read.csv('Model3FIX.csv', row.names = 'X')
-sd(table(model2$Winner) * 2)
-sd(table(model3$Winner) * 2)
-sd(table(model1$Winner) * 2)
+
 
 
 which(abs(as.numeric(model1$WinA) - as.numeric(model1$WinB)) == min(abs(as.numeric(model1$WinA) - as.numeric(model1$WinB))))
@@ -30,7 +28,11 @@ tibble(model1)
 tibble(model2)
 
 
-colnames(model3) <- c("TeamA", "TeamB", "Winner")
+colnames(model3) <- c("TeamA", "TeamB", "Winner", "WinA", "WinB")
+sd(table(model2$Winner) * 2)
+sd(table(model3$Winner) * 2)
+sd(table(model1$Winner) * 2)
+
 
 noquote(sort(unique(model1$Winner)))
 paste(sort(unique(model1$Winner)), collapse = ',')
@@ -55,7 +57,6 @@ make_predictions <- function(actual, model){
     model <- model[-index_to_drop,]
   }
   predictions
-  model
 }
 
 actual$WinnerModel1 <- make_predictions(actual, model1)
@@ -63,6 +64,47 @@ actual$WinnerModel2 <- make_predictions(actual, model2)
 actual$WinnerModel3 <- make_predictions(actual, model3)
 
 table(make_predictions(actual, model3)$Winner) * 2 # predicting the remainder of the season
+
+
+
+# weighted success
+model1$WinA <- as.numeric(model1$WinA)  / 1000
+model1$WinB <- as.numeric(model1$WinB)  / 1000
+model2$WinA <- as.numeric(model2$WinA)  / 1000
+model2$WinB <- as.numeric(model2$WinB)  / 1000
+
+model2
+
+
+weighted_success <- function(actual, model){
+  predictions <- numeric(length = length(nrow(actual)))
+  
+  for (i in seq_len(nrow(actual))) {
+    d <- actual[i,] 
+    predicted <- model[((model$TeamA == d$TeamA) | (model$TeamB == d$TeamA)) & ((model$TeamA == d$TeamB) | (model$TeamB == d$TeamB)),][1,]
+    index_to_drop <- which(rownames(model) == rownames(predicted))
+    if (d$Winner == predicted$TeamA){
+      predictions[i] <- predicted$WinA
+    } else if (d$Winner == predicted$TeamB){
+      predictions[i] <- predicted$WinB
+    } else {
+      print(d$Winner)
+      print(predicted$TeamB)
+      print(predicted$TeamA)
+    }    
+    model <- model[-index_to_drop,]
+  }
+  predictions
+}
+
+model1_weights <- weighted_success(actual, model1)
+model2_weights <- weighted_success(actual, model2)
+model3_weights <- weighted_success(actual, model3)
+
+sum(model1_weights)
+sum(model2_weights)
+sum(model3_weights)
+
 
 
 
