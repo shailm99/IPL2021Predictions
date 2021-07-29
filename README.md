@@ -1,4 +1,5 @@
 # IPL 2021 Predictions
+![Learn more](https://github.com/shailm99/GrandSlamServing/blob/main/Serve%20Article%20Graphic.png?raw=true)
 
 This repository contains the three different models used to predict the result of each match in the 2021 Indian Premier League. 
 
